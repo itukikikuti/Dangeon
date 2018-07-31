@@ -131,8 +131,17 @@ int MAIN()
     Camera camera;
     camera.color = Float4(0.0f, 0.0f, 0.0f, 0.0f);
 
+    Light light;
+    light.type = Light::Type::Point;
+    light.range = 1000.0f;
+    
     Sprite ground(L"ground.png");
     ground.scale = 2.0f;
+    ground.GetMaterial().Load(L"shader.hlsl");
+
+    Sprite wall(L"wall.png");
+    wall.scale = 2.0f;
+    wall.GetMaterial().Load(L"shader.hlsl");
 
     Sprite player(L"player.png");
     player.scale = 2.0f;
@@ -147,6 +156,7 @@ int MAIN()
         Window::SetTitle(std::to_wstring(Timer::GetFrameRate()).c_str());
 
         camera.Update();
+        light.Update();
 
         switch (mode)
         {
@@ -213,6 +223,19 @@ int MAIN()
                 }
             }
 
+
+            if (Input::GetKeyDown(VK_SPACE))
+            {
+                if (center.x > 0)
+                    map[center.x - 1][center.y] = true;
+                if (center.x < width - 1)
+                    map[center.x + 1][center.y] = true;
+                if (center.y > 0)
+                    map[center.x][center.y - 1] = true;
+                if (center.y < height - 1)
+                    map[center.x][center.y + 1] = true;
+            }
+
             XMINT2 size(Window::GetSize().x / 32 / 2 + 1, Window::GetSize().y / 32 / 2 + 1);
             for (int x = center.x - size.x; x <= center.x + size.x; x++)
             {
@@ -221,16 +244,25 @@ int MAIN()
                     if (x < 0 || y < 0 || x >= width || y >= height)
                         continue;
 
-                    if (!map[x][y])
-                        continue;
-
-                    ground.position = Float3(x * 32.0f, y * 32.0f, 0);
-                    ground.Draw();
+                    if (map[x][y])
+                    {
+                        ground.position = Float3(x * 32.0f, y * 32.0f, 0);
+                        ground.Draw();
+                    }
+                    else
+                    {
+                        if (y > 0 && map[x][y - 1])
+                        {
+                            wall.position = Float3(x * 32.0f, y * 32.0f, 0);
+                            wall.Draw();
+                        }
+                    }
                 }
             }
 
             position += velocity;
             camera.position = position;
+            light.position = position - Float3(0.0f, 0.0f, 50.0f);
             player.position = position;
             player.Draw();
             break;
