@@ -134,7 +134,7 @@ int MAIN()
     Light light;
     light.type = Light::Type::Point;
     light.range = 1000.0f;
-    
+
     Sprite ground(L"ground.png");
     ground.scale = 2.0f;
     ground.GetMaterial().Load(L"shader.hlsl");
@@ -246,6 +246,9 @@ int MAIN()
 
                     if (map[x][y])
                     {
+                        if (y > 0 && !map[x][y - 1])
+                            continue;
+
                         ground.position = Float3(x * 32.0f, y * 32.0f, 0);
                         ground.Draw();
                     }
